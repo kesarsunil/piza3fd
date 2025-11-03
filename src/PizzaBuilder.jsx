@@ -3,6 +3,8 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Stage } from "@react-three/drei";
 import { Link, useNavigate } from "react-router-dom";
 import { CartContext } from "./CartContext";
+import { AuthContext } from "./AuthContext";
+import AdminButton from "./AdminButton";
 import "./index.css";
 
 const VEG_TOPPINGS = [
@@ -124,10 +126,17 @@ function SprinkledTopping({ topping, pieces }) {
 export default function PizzaBuilder() {
   const [toppings, setToppings] = useState({});
   const [sprinkles, setSprinkles] = useState([]);
-  const { addToCart, cartItems, clearCart } = useContext(CartContext);
+  const { addToCart, cartItems, clearCart, removeFromCart } = useContext(CartContext);
+  const { username, logout } = useContext(AuthContext);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [swipeOrder, setSwipeOrder] = useState(false);
   const cartSectionRef = useRef(null);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   const handleAddTopping = (name) => {
     const isOnion = name === 'Onion';
@@ -169,14 +178,36 @@ export default function PizzaBuilder() {
   };
 
   const handleAddPizzaToCart = () => {
-    if (!addToCart) return;
+    console.log('========================================');
+    console.log('🍕 ADD PIZZA BUTTON CLICKED!');
+    console.log('========================================');
+    console.log('✅ addToCart function exists?', !!addToCart);
+    console.log('📊 Total price:', totalPrice);
+    console.log('🔢 Selected toppings:', toppings);
+    
+    if (!addToCart) {
+      console.error('❌ ERROR: addToCart function not found!');
+      alert('❌ ERROR: Cart not available! Please refresh the page.');
+      return;
+    }
+    
     const pizza = {
       name: "Custom Pizza",
       description: getPizzaDescription(),
       price: totalPrice,
       toppings: { ...toppings },
     };
+    
+    console.log('📦 Pizza object created:', pizza);
+    console.log('🚀 Calling addToCart...');
+    
     addToCart(pizza);
+    
+    console.log('✅ addToCart called successfully!');
+    console.log('========================================');
+    
+    // Show visual confirmation
+    alert(`✅ Pizza added to cart!\n\nPrice: ₹${totalPrice}\nToppings: ${getPizzaDescription()}`);
   };
 
   // Scroll to cart section
@@ -189,26 +220,53 @@ export default function PizzaBuilder() {
   // Cart total
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
 
-  // Place order logic with swipe animation
+  // Place order logic - redirect to Cart page
   const handlePlaceOrder = () => {
-    setSwipeOrder(true);
-    setTimeout(() => {
-      setOrderPlaced(true);
-      clearCart();
-      setSwipeOrder(false);
-    }, 600); // match animation duration
+    if (cartItems.length === 0) {
+      alert('❌ Cart is empty! Add some pizzas first.');
+      return;
+    }
+    // Redirect to Cart page to place order
+    console.log('🛒 Redirecting to Cart page to place order...');
+    console.log('📦 Cart has', cartItems.length, 'items');
+    window.location.href = '/cart';
   };
 
   return (
     <div style={{ minHeight: '100vh', minWidth: '100vw', background: 'linear-gradient(135deg, #f8ffae 0%, #43c6ac 50%, #191654 100%)', margin: 0, padding: 0, overflow: 'hidden' }}>
+      {/* Admin Button */}
+      <AdminButton />
+      
       {/* Navbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 32px', background: '#fff', boxShadow: '0 2px 8px #eee', width: '100vw', boxSizing: 'border-box' }}>
         <div style={{ fontSize: 28, fontWeight: 700, display: 'flex', alignItems: 'center', color: '#000' }}>
           <span style={{ fontSize: 32, marginRight: 8 }}>🍕</span> Pizza Builder
           <div style={{ fontSize: 14, fontWeight: 400, color: '#888', marginLeft: 16 }}>Create your perfect pizza masterpiece</div>
         </div>
-        <div>
-          <span style={{ marginRight: 24, fontWeight: 600, fontSize: 18, color: '#000' }}>₹{totalPrice}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ color: '#666', fontSize: 14, marginRight: 8 }}>
+            👤 {username}
+          </span>
+          <Link
+            to="/order-history"
+            style={{
+              background: '#ff9800',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              padding: '8px 20px',
+              fontWeight: 600,
+              fontSize: 16,
+              display: 'inline-flex',
+              alignItems: 'center',
+              textDecoration: 'none',
+              boxShadow: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <span style={{ marginRight: 8 }}>📜</span> My Orders
+          </Link>
+          <span style={{ marginRight: 8, fontWeight: 600, fontSize: 18, color: '#000' }}>₹{totalPrice}</span>
           <button
             onClick={handleCartScroll}
             style={{
@@ -221,12 +279,49 @@ export default function PizzaBuilder() {
               fontSize: 16,
               display: 'inline-flex',
               alignItems: 'center',
-              textDecoration: 'none',
-              boxShadow: 'none',
+              position: 'relative',
               cursor: 'pointer'
             }}
           >
-            <span style={{ marginRight: 8 }}>🛒</span> Cart
+            🛒 Cart
+            {cartItems.length > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: -8,
+                right: -8,
+                background: '#ff0000',
+                color: '#fff',
+                borderRadius: '50%',
+                width: 24,
+                height: 24,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 12,
+                fontWeight: 700,
+                border: '2px solid white'
+              }}>
+                {cartItems.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={handleLogout}
+            style={{
+              background: '#dc3545',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              padding: '8px 20px',
+              fontWeight: 600,
+              fontSize: 16,
+              cursor: 'pointer',
+              transition: 'background 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.background = '#c82333'}
+            onMouseOut={(e) => e.target.style.background = '#dc3545'}
+          >
+            🚪 Logout
           </button>
         </div>
       </div>
@@ -324,12 +419,45 @@ export default function PizzaBuilder() {
               ) : (
                 <ul style={{ listStyle: 'none', padding: 0, marginBottom: 32 }}>
                   {cartItems.map((item, idx) => (
-                    <li key={idx} style={{ background: '#f8fafc', borderRadius: 10, padding: '14px 18px', marginBottom: 14, display: 'flex', flexDirection: 'column', boxShadow: '0 1px 4px #e0e7ef' }}>
-                      <span style={{ fontWeight: 600, color: '#222', fontSize: 18 }}>{item.name}</span>
-                      <span style={{ color: '#888', fontSize: 15, marginTop: 4 }}>{item.description}</span>
-                      {item.price !== undefined && (
-                        <span style={{ color: '#000', fontWeight: 600, fontSize: 16, marginTop: 4 }}>₹{item.price}</span>
-                      )}
+                    <li key={idx} style={{ background: '#f8fafc', borderRadius: 10, padding: '14px 18px', marginBottom: 14, boxShadow: '0 1px 4px #e0e7ef' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontWeight: 600, color: '#222', fontSize: 18, display: 'block' }}>{item.name}</span>
+                          <span style={{ color: '#888', fontSize: 15, marginTop: 4, display: 'block' }}>{item.description}</span>
+                          {item.price !== undefined && (
+                            <span style={{ color: '#388e3c', fontWeight: 700, fontSize: 18, marginTop: 8, display: 'block' }}>₹{item.price}</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            console.log('🗑️ Removing item from cart at index:', idx);
+                            removeFromCart(idx);
+                          }}
+                          style={{
+                            background: '#ff4444',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 6,
+                            padding: '8px 16px',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: 14,
+                            marginLeft: 12,
+                            boxShadow: '0 2px 6px rgba(255,68,68,0.3)',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = '#cc0000';
+                            e.target.style.transform = 'scale(1.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = '#ff4444';
+                            e.target.style.transform = 'scale(1)';
+                          }}
+                        >
+                          🗑️ Remove
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -352,7 +480,7 @@ export default function PizzaBuilder() {
                   marginBottom: 18,
                 }}
               >
-                Place Order
+                ✅ Confirm Order
               </button>
             </>
           )}

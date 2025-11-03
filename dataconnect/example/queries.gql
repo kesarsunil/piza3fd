@@ -1,0 +1,62 @@
+mutation AddNewTopping($name: String!, $price: Float!) @auth(level: USER) {
+  topping_insert(data: {name: $name, price: $price})
+}
+
+query ListPizzasForPizzeria($pizzeriaId: UUID!) @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  pizzas(where: {pizzeriaId: {eq: $pizzeriaId}}) {
+    id
+    name
+    description
+    basePrice
+    imageUrl
+  }
+}
+
+mutation CreateNewOrder($customerId: UUID!, $pizzeriaId: UUID!, $deliveryAddress: String, $notes: String, $orderDate: Timestamp!, $status: String!, $totalAmount: Float!) @auth(level: USER) {
+  order_insert(data: {customerId: $customerId, pizzeriaId: $pizzeriaId, deliveryAddress: $deliveryAddress, notes: $notes, orderDate: $orderDate, status: $status, totalAmount: $totalAmount})
+}
+
+query GetOrderDetails($orderId: UUID!) @auth(level: USER) {
+  order(id: $orderId) {
+    id
+    customerId
+    pizzeriaId
+    createdAt
+    deliveryAddress
+    notes
+    orderDate
+    status
+    totalAmount
+    customer {
+      id
+      displayName
+      email
+      phoneNumber
+      address
+    }
+    pizzeria {
+      id
+      name
+      address
+      phoneNumber
+    }
+    orderItems_on_order {
+      id
+      pizzaId
+      customizationDetails
+      price
+      quantity
+      pizza {
+        id
+        name
+        description
+        basePrice
+      }
+      toppings_via_OrderItemTopping {
+        id
+        name
+        price
+      }
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { CartContext } from "./CartContext";
+import FirebaseTestButton from "./FirebaseTestButton";
 
 export default function Home() {
   const { addToCart } = useContext(CartContext);
@@ -14,6 +15,9 @@ export default function Home() {
         <p>{pizza.description}</p>
         <button onClick={() => addToCart(pizza)}>Add to Cart</button>
       </div>
+      
+      {/* Firebase Test Button - appears in bottom right corner */}
+      <FirebaseTestButton />
     </div>
   );
 }

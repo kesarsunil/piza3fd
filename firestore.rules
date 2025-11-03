@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ⭐ NEW: Enable collectionGroup queries for all 'orders' subcollections
+    // This allows admin to fetch orders from ALL customers using collectionGroup(db, 'orders')
+    match /{path=**}/orders/{orderId} {
+      allow read: if true;  // Admin can read all orders from all customers
+      allow write: if true; // Admin can update order status (deliver, cancel)
+    }
+    
+    // Test collection - allow all for testing
+    match /test/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Orders collection - allow authenticated users
+    match /orders/{orderId} {
+      allow read: if true; // Allow anyone to read (for now)
+      allow write: if true; // Allow anyone to write (for now)
+    }
+    
+    // Order History - users can access their own
+    match /orderHistory/{orderId} {
+      allow read, write: if true; // Open for now, secure later
+    }
+    
+    // 🔥 Customers collection with subcollections
+    // Structure: customers/{customerName}/orders/{orderId}
+    //           customers/{customerName}/cart/{itemId}
+    match /customers/{customerName} {
+      allow read, write: if true; // Open for testing
+      
+      // Subcollection: cart (items before placing order)
+      match /cart/{itemId} {
+        allow read, write: if true; // Allow adding/removing cart items
+      }
+      
+      // Subcollection: orders under each customer
+      match /orders/{orderId} {
+        allow read, write: if true; // Open for testing
+      }
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if true; // Open for now
+    }
+  }
+}
+

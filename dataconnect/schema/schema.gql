@@ -1,0 +1,56 @@
+type User @table {
+  email: String!
+  displayName: String!
+  createdAt: Timestamp!
+  phoneNumber: String
+  address: String
+}
+
+type Pizzeria @table {
+  owner: User!
+  name: String!
+  address: String!
+  phoneNumber: String!
+  createdAt: Timestamp!
+  description: String
+  imageUrl: String
+  openingHours: String
+}
+
+type Pizza @table {
+  pizzeria: Pizzeria!
+  name: String!
+  basePrice: Float!
+  createdAt: Timestamp!
+  description: String
+  imageUrl: String
+}
+
+type Topping @table {
+  name: String!
+  price: Float!
+}
+
+type Order @table {
+  customer: User!
+  pizzeria: Pizzeria!
+  orderDate: Timestamp!
+  totalAmount: Float!
+  status: String!
+  createdAt: Timestamp!
+  deliveryAddress: String
+  notes: String
+}
+
+type OrderItem @table {
+  order: Order!
+  pizza: Pizza
+  quantity: Int!
+  price: Float!
+  customizationDetails: String
+}
+
+type OrderItemTopping @table(key: ["orderItem", "topping"]) {
+  orderItem: OrderItem!
+  topping: Topping!
+}
