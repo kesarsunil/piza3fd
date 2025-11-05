@@ -13,7 +13,8 @@ export default defineConfig({
         manualChunks: {
           // Split vendor code into separate chunks
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore']
+          'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          'three-vendor': ['three', '@react-three/fiber', '@react-three/drei']
         }
       }
     },
