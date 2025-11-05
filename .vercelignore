@@ -1,0 +1,18 @@
+# Vercel Ignore - Don't deploy these files
+node_modules
+.git
+.gitignore
+*.md
+*.txt
+.firebase
+.firebaserc
+firebase.json
+firestore.rules
+firestore.indexes.json
+dataconnect
+*.glb
+src
+public
+package-lock.json
+vite.config.js
+eslint.config.js
