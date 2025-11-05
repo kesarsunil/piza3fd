@@ -7,5 +7,4 @@
 firestore.rules
 firestore.indexes.json
 dataconnect
-*.glb
 
